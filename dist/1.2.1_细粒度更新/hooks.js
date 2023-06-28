@@ -1,6 +1,13 @@
 "use strict";
+/**
+ * vue中 const y = computed(() => x * 2 + 1)
+ *
+ * 这种自动追踪依赖的技术被称为 “细粒度更新”，也是很多框架实现 “自变量到UI变化” 的底层原理
+ *
+ * 接下来编程实现，命名参考React API
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useEffect = exports.useState = void 0;
+exports.useMemo = exports.useEffect = exports.useState = void 0;
 // effect调用栈
 const effectStack = [];
 /**
@@ -34,14 +41,13 @@ function useState(value) {
         for (const effect of [...subs]) {
             effect.execute();
         }
-        // return value;
     };
     return [getter, setter];
 }
 exports.useState = useState;
 function useEffect(callback) {
     const execute = () => {
-        // 重置依赖 ？？
+        // 重置依赖，每次执行 callback 的时候重新收集依赖
         cleanup(effect);
         // effect入栈，为state的getter提供effect
         effectStack.push(effect);
@@ -60,3 +66,10 @@ function useEffect(callback) {
     execute();
 }
 exports.useEffect = useEffect;
+function useMemo(callback) {
+    const [s, set] = useState();
+    // 首次执行，初始化value
+    useEffect(() => set(callback()));
+    return s;
+}
+exports.useMemo = useMemo;

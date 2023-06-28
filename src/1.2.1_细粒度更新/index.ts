@@ -1,17 +1,31 @@
-/**
- * vue中 const y = computed(() => x * 2 + 1)
- *
- * 这种自动追踪依赖的技术被称为 “细粒度更新”，也是很多框架实现 “自变量到UI变化” 的底层原理
- *
- * 接下来编程实现，命名参考React API
- */
+import { useState, useEffect, useMemo } from "./hooks";
 
-import { useState, useEffect } from "./hooks";
+const [name1, setName1] = useState("Li Lei");
+const [name2, setName2] = useState("Han Mei Mei");
+const [showAll, setShowAll] = useState(true);
 
-const [count, setCount] = useState(0);
+const whoIsHere = useMemo(() => {
+  if (!showAll()) {
+    return name1();
+  }
 
-useEffect(() => {
-  console.log(`count: ${count()}`); // log 0
+  return `${name1()} & ${name2()}`;
 });
 
-setCount(2); // log 2
+useEffect(() => {
+  return console.log(`Who is here, is ${whoIsHere()}`);
+});
+
+setName1("Xiao Ming"); //
+
+setShowAll(false);
+
+setName2("Xiao Hong");
+
+/**
+ * 预期结果
+ * 1、useEffect立即执行一次: Who is here, is Li Lei & Han Mei Mei
+ * 2、修改name1： Who is here, is Xiao Ming & Han Mei Mei
+ * 3、修改showAll: Who is here, is Xiao Ming
+ * 4、修改name2: whoIsHere不变，没有输出
+ */

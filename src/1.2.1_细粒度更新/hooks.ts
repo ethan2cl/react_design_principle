@@ -1,3 +1,11 @@
+/**
+ * vue中 const y = computed(() => x * 2 + 1)
+ *
+ * 这种自动追踪依赖的技术被称为 “细粒度更新”，也是很多框架实现 “自变量到UI变化” 的底层原理
+ *
+ * 接下来编程实现，命名参考React API
+ */
+
 import { Effect } from "./types";
 
 // effect调用栈
@@ -21,7 +29,7 @@ const cleanup = (effect: Effect<Set<Effect>>) => {
   effect.deps.clear();
 };
 
-export function useState<T = any>(value: T) {
+export function useState<T = any>(value?: T) {
   // 收集订阅的effect, Set不会添加重复的数据
   const subs = new Set<Effect>();
 
@@ -38,7 +46,6 @@ export function useState<T = any>(value: T) {
     for (const effect of [...subs]) {
       effect.execute();
     }
-    // return value;
   };
 
   return [getter, setter] as const;
@@ -46,7 +53,7 @@ export function useState<T = any>(value: T) {
 
 export function useEffect(callback: Function) {
   const execute = () => {
-    // 重置依赖 ？？
+    // 重置依赖，每次执行 callback 的时候重新收集依赖
     cleanup(effect);
     // effect入栈，为state的getter提供effect
     effectStack.push(effect);
@@ -64,4 +71,11 @@ export function useEffect(callback: Function) {
   };
 
   execute();
+}
+
+export function useMemo(callback: Function) {
+  const [s, set] = useState();
+  // 首次执行，初始化value
+  useEffect(() => set(callback()));
+  return s;
 }
